@@ -1,0 +1,59 @@
+name: Deploy to GitHub Pages
+
+# main branch'e her push yapıldığında otomatik çalışır.
+# İstersen Actions sekmesinden elle de tetikleyebilirsin (workflow_dispatch).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# GitHub Pages'e deploy için gereken izinler
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Aynı anda tek bir deploy çalışsın
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # 1) Projeyi derle (npm run build -> dist/)
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kodu çek
+        uses: actions/checkout@v4
+
+      - name: Node.js kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Bağımlılıkları yükle
+        run: npm install
+
+      - name: Projeyi derle
+        run: npm run build
+
+      - name: Pages'i hazırla
+        uses: actions/configure-pages@v5
+
+      - name: dist klasörünü yükle
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  # 2) Derlenen dist/ klasörünü yayına al
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: GitHub Pages'e deploy et
+        id: deployment
+        uses: actions/deploy-pages@v4
