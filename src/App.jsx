@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { MAKALELER } from "./data/makaleler";
 import { BIO_DATA } from "./data/bioData";
+import { FELSEFE } from "./data/felsefe";
 import { getArticles } from "./lib/articles";
+import { getFelsefe } from "./lib/felsefe";
+import { getBios } from "./lib/bios";
 import { S } from "./styles";
 
 import Header from "./components/Header";
@@ -31,17 +34,15 @@ export default function App() {
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
-  // Yazılar: önce yerel (fallback) listeyle başla, sonra Supabase'den çek.
-  // Supabase kurulu değilse/erişilemezse yerel MAKALELER görünür kalır.
+  // İçerik: önce yerel (fallback) listeyle başla, sonra Supabase'den çek.
+  // Supabase kurulu değilse/erişilemezse yerel veriler görünür kalır.
   const [articles, setArticles] = useState(MAKALELER);
+  const [felsefe, setFelsefe] = useState(FELSEFE);
+  const [bios, setBios] = useState(BIO_DATA);
   useEffect(() => {
-    getArticles()
-      .then((list) => {
-        if (list && list.length) setArticles(list);
-      })
-      .catch(() => {
-        /* bağlantı yok: yerel MAKALELER ile devam */
-      });
+    getArticles().then((l) => { if (l && l.length) setArticles(l); }).catch(() => {});
+    getFelsefe().then((l) => { if (l && l.length) setFelsefe(l); }).catch(() => {});
+    getBios().then((l) => { if (l && l.length) setBios(l); }).catch(() => {});
   }, []);
 
   if (isAdmin) return <Admin />;
@@ -60,7 +61,7 @@ export default function App() {
   ];
 
   const makale = articles.find(m => m.id === artId);
-  const bio = BIO_DATA.find(b => b.id === bioId);
+  const bio = bios.find(b => b.id === bioId);
 
   const tickerText = "Mülkiyet hırsızlıktır — Proudhon · Hukuk iktidarın fahişesidir — Bakunin · Yıkma tutkusu aynı zamanda yaratıcı bir tutkudur — Bakunin · Karşılıklı yardımlaşma türlerin hayatta kalmasındaki asıl güçtür — Kropotkin · Eğer Tanrı varsa insan köle olmak zorundadır — Bakunin · Hükümet olmaksızın düzen — Proudhon · Ekmek herkes içindir — Kropotkin · ";
 
@@ -80,9 +81,9 @@ export default function App() {
 
       {page === "yazilar" && <Yazilar goArt={goArt} articles={articles} />}
 
-      {page === "felsefe" && <Felsefe />}
+      {page === "felsefe" && <Felsefe felsefe={felsefe} />}
 
-      {page === "anarsizm" && <Anarsizm goBio={goBio} />}
+      {page === "anarsizm" && <Anarsizm goBio={goBio} bios={bios} />}
 
       {page === "bio" && bio && <BioDetail bio={bio} onBack={() => go("anarsizm")} />}
 

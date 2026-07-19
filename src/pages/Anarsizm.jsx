@@ -1,7 +1,7 @@
 import { S } from "../styles";
-import { BIO_DATA } from "../data/bioData";
 
-export default function Anarsizm({ goBio }) {
+export default function Anarsizm({ goBio, bios }) {
+  const list = bios || [];
   return (
     <main style={S.main}>
       <div style={S.sh}><span style={S.st}>ANARŞİZM</span><div style={S.sl} /></div>
@@ -11,8 +11,8 @@ export default function Anarsizm({ goBio }) {
       </div>
       <div style={S.sh}><span style={S.st}>Düşünürler ve TARİHSEL OLAYLAR</span><div style={S.sl} /></div>
       <div style={S.alist}>
-        {BIO_DATA.map((b, i) => (
-          <div key={b.id} style={{ ...S.arow, borderBottom: i < BIO_DATA.length - 1 ? "1px solid #222" : "none" }}
+        {list.map((b, i) => (
+          <div key={b.id} style={{ ...S.arow, borderBottom: i < list.length - 1 ? "1px solid #222" : "none" }}
             onClick={() => goBio(b.id)}
             onMouseEnter={e => e.currentTarget.style.background = "#111"}
             onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
