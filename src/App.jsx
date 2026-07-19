@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MAKALELER } from "./data/makaleler";
 import { BIO_DATA } from "./data/bioData";
+import { getArticles } from "./lib/articles";
 import { S } from "./styles";
 
 import Header from "./components/Header";
@@ -14,12 +15,36 @@ import Felsefe from "./pages/Felsefe";
 import Anarsizm from "./pages/Anarsizm";
 import Hakkinda from "./pages/Hakkinda";
 import Article from "./pages/Article";
+import Admin from "./pages/Admin";
 
 export default function App() {
   const [page, setPage] = useState("home");
   const [prev, setPrev] = useState("home");
   const [artId, setArtId] = useState(null);
   const [bioId, setBioId] = useState(null);
+
+  // /#admin adresinde yönetim panelini aç
+  const [isAdmin, setIsAdmin] = useState(() => window.location.hash === "#admin");
+  useEffect(() => {
+    const onHash = () => setIsAdmin(window.location.hash === "#admin");
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  // Yazılar: önce yerel (fallback) listeyle başla, sonra Supabase'den çek.
+  // Supabase kurulu değilse/erişilemezse yerel MAKALELER görünür kalır.
+  const [articles, setArticles] = useState(MAKALELER);
+  useEffect(() => {
+    getArticles()
+      .then((list) => {
+        if (list && list.length) setArticles(list);
+      })
+      .catch(() => {
+        /* bağlantı yok: yerel MAKALELER ile devam */
+      });
+  }, []);
+
+  if (isAdmin) return <Admin />;
 
   const go = (p) => { setPage(p); setBioId(null); setArtId(null); };
   const goArt = (id) => { setPrev(page); setArtId(id); setPage("article"); };
@@ -34,7 +59,7 @@ export default function App() {
     { id: "hakkinda", label: "HAKKINDA" },
   ];
 
-  const makale = MAKALELER.find(m => m.id === artId);
+  const makale = articles.find(m => m.id === artId);
   const bio = BIO_DATA.find(b => b.id === bioId);
 
   const tickerText = "Mülkiyet hırsızlıktır — Proudhon · Hukuk iktidarın fahişesidir — Bakunin · Yıkma tutkusu aynı zamanda yaratıcı bir tutkudur — Bakunin · Karşılıklı yardımlaşma türlerin hayatta kalmasındaki asıl güçtür — Kropotkin · Eğer Tanrı varsa insan köle olmak zorundadır — Bakunin · Hükümet olmaksızın düzen — Proudhon · Ekmek herkes içindir — Kropotkin · ";
@@ -53,7 +78,7 @@ export default function App() {
 
       {page === "home" && <Home />}
 
-      {page === "yazilar" && <Yazilar goArt={goArt} />}
+      {page === "yazilar" && <Yazilar goArt={goArt} articles={articles} />}
 
       {page === "felsefe" && <Felsefe />}
 
