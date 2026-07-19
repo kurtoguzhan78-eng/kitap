@@ -377,7 +377,7 @@ export const MAKALELER = [
     ],
   },
   {
-    id: "Ateizm Yanılgısı", tag: "Siyaset & Felsefe", date: "2026", title: "Ateizm Nedir?",
+    id: "Ateizm Yanılgısı", tag: "Siyaset & Felsefe", date: "2026", title: "Ateizm Yanılgısı",
     desc: "Ateizm, Tanrı’nın var olmadığına inanan veya Tanrı'nın gerçek olmadığını iddia eden bir din ve inanç olarak tanımlanır.",
     body: [
       "Ateizm Nedir?",
