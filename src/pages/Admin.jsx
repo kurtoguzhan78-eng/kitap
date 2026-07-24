@@ -6,7 +6,7 @@ import { getBios, addBio, updateBio, deleteBio, importBios } from "../lib/bios";
 import { getKonular, addKonu, updateKonu, deleteKonu } from "../lib/konular";
 import { RED, SEKME_ADI } from "../constants";
 
-const wrap = { minHeight: "100vh", background: "#0a0a0a", color: "#e8e8e8", fontFamily: "Georgia, 'Times New Roman', serif", padding: "40px 20px" };
+const wrap = { minHeight: "100vh", background: "#0a0a0a", color: "#e8e8e8", fontFamily: "Georgia, 'Times New Roman', serif", padding: "40px 16px" };
 const box = { maxWidth: 820, margin: "0 auto" };
 const input = { width: "100%", padding: "12px 14px", background: "#111", border: "1px solid #333", color: "#e8e8e8", fontSize: 15, marginBottom: 14, fontFamily: "inherit" };
 const label = { display: "block", fontSize: 12, letterSpacing: 1, textTransform: "uppercase", color: "#888", marginBottom: 6 };
@@ -222,7 +222,7 @@ export default function Admin() {
   return (
     <div style={wrap}>
       <div style={box}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6, flexWrap: "wrap", gap: 10 }}>
           <h1 style={{ fontSize: 22 }}>NOMASTER · Yönetim</h1>
           <div style={{ fontSize: 12, color: "#777" }}>
             {session.user.email}
@@ -249,7 +249,7 @@ export default function Admin() {
         <div>
           {list.length === 0 && <div style={{ color: "#666", fontSize: 14 }}>Henüz kayıt yok. "+ Yeni" ile ekleyebilirsin.</div>}
           {list.map((a) => (
-            <div key={a.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 0", borderBottom: "1px solid #1e1e1e", gap: 12 }}>
+            <div key={a.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 0", borderBottom: "1px solid #1e1e1e", gap: 12, flexWrap: "wrap" }}>
               <div>
                 <div style={{ fontSize: 16 }}>{disp.title(a)}</div>
                 <div style={{ fontSize: 12, color: "#666", marginTop: 3 }}>{disp.sub(a)}</div>

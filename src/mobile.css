@@ -1,0 +1,113 @@
+/* ============================================================
+   NOMASTER — mobil uyarlamalar
+   Masaüstü görünümü DEĞİŞMEZ. Buradaki kurallar yalnızca
+   ekran genişliği 760px'in altına indiğinde devreye girer.
+   (Bileşenlerdeki satır içi stilleri geçersiz kılmak için
+   !important gerekiyor; bu yüzden kurallarda o var.)
+   ============================================================ */
+
+/* Yatay taşmaya karşı güvenlik ağı */
+html,
+body {
+  overflow-x: hidden;
+}
+
+@media (max-width: 760px) {
+
+  /* --- Üst kısım: logo ve menü yan yana değil, alt alta --- */
+  .nm-header {
+    flex-direction: column !important;
+  }
+
+  .nm-hleft {
+    border-right: none !important;
+    border-bottom: 1px solid #333 !important;
+    padding: 1.3rem 1.1rem !important;
+  }
+
+  .nm-hright {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    min-width: 0 !important;
+    padding: 0.9rem 1.1rem !important;
+    gap: 0.85rem 1.1rem !important;
+  }
+
+  .nm-navbtn {
+    text-align: left !important;
+  }
+
+  /* --- Sayfa kenar boşlukları --- */
+  .nm-main {
+    padding: 1.6rem 1.1rem !important;
+    overflow-wrap: break-word;
+  }
+
+  /* --- Bölüm başlıkları çok dar ekranda alt satıra insin --- */
+  .nm-st {
+    white-space: normal !important;
+    letter-spacing: 0.2em !important;
+  }
+
+  /* --- Liste satırları: 3 sütun yerine alt alta --- */
+  .nm-row {
+    grid-template-columns: 1fr !important;
+    gap: 0.45rem !important;
+    padding: 1.1rem 1.1rem !important;
+  }
+
+  .nm-tag {
+    white-space: normal !important;
+  }
+
+  /* --- Çerçeveli kutular --- */
+  .nm-ared,
+  .nm-abox {
+    padding: 1.4rem 1.1rem !important;
+  }
+
+  .nm-aredh {
+    font-size: 1.15rem !important;
+  }
+
+  .nm-agrid {
+    grid-template-columns: 1fr !important;
+    gap: 1.2rem !important;
+  }
+
+  /* --- Ana sayfa: 4 sütun yerine 2x2 --- */
+  .nm-homegrid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .nm-foto,
+  .nm-fotoimg {
+    min-height: 44vh !important;
+  }
+
+  /* sağ sütundaki kartların kenar çizgisi ekran kenarında kalmasın */
+  .nm-foto:nth-child(2n) {
+    border-right: none !important;
+  }
+
+  .nm-fotocap {
+    padding: 1.1rem 0.85rem !important;
+  }
+
+  /* --- Yazı içi alıntı bloğu --- */
+  .nm-pull {
+    padding-left: 1rem !important;
+    font-size: 1rem !important;
+    margin: 1.5rem 0 !important;
+  }
+
+  /* --- Alt bilgi --- */
+  .nm-footer {
+    flex-direction: column !important;
+    gap: 0.7rem !important;
+    text-align: center !important;
+    padding: 1.4rem 1.1rem !important;
+  }
+}

@@ -5,7 +5,7 @@ export default function ArticleBody({ body }) {
     <div style={S.artBody} >
       {
         body.map((p, i) => p.startsWith("PULL:")
-          ? <div key={i} style={S.pull}>{p.slice(5)}</div>
+          ? <div key={i} className="nm-pull" style={S.pull}>{p.slice(5)}</div>
           : <p key={i} style={S.artP}>{p}</p>
         )
       }

@@ -5,7 +5,7 @@ import { S } from "../styles";
 export default function BioDetail({ bio, onBack }) {
   const [open, setOpen] = useState(null);
   return (
-    <main style={S.main}>
+    <main style={S.main} className="nm-main">
       <button style={S.backBtn} onClick={onBack}>← ANARŞİZM'E DÖN</button>
       <div style={S.artWrap}>
         <span style={S.artTag}>{bio.etiket}</span>

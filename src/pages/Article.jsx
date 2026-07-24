@@ -3,7 +3,7 @@ import ArticleBody from "../components/ArticleBody";
 
 export default function Article({ makale, go, prev }) {
   return (
-    <main style={S.main}>
+    <main style={S.main} className="nm-main">
       <button style={S.backBtn} onClick={() => go(prev)}>← Geri Dön</button>
       <div style={S.artWrap}>
         <span style={S.artTag}>{makale.tag}</span>
