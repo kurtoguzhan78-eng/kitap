@@ -3,7 +3,8 @@ import { supabase } from "../lib/supabase";
 import { getArticles, addArticle, updateArticle, deleteArticle, importArticles } from "../lib/articles";
 import { getFelsefe, addFelsefe, updateFelsefe, deleteFelsefe, importFelsefe } from "../lib/felsefe";
 import { getBios, addBio, updateBio, deleteBio, importBios } from "../lib/bios";
-import { RED } from "../constants";
+import { getKonular, addKonu, updateKonu, deleteKonu } from "../lib/konular";
+import { RED, SEKME_ADI } from "../constants";
 
 const wrap = { minHeight: "100vh", background: "#0a0a0a", color: "#e8e8e8", fontFamily: "Georgia, 'Times New Roman', serif", padding: "40px 20px" };
 const box = { maxWidth: 820, margin: "0 auto" };
@@ -19,17 +20,24 @@ const API = {
   yazilar: { get: getArticles, add: addArticle, update: updateArticle, del: deleteArticle, imp: importArticles },
   felsefe: { get: getFelsefe, add: addFelsefe, update: updateFelsefe, del: deleteFelsefe, imp: importFelsefe },
   biyografiler: { get: getBios, add: addBio, update: updateBio, del: deleteBio, imp: importBios },
+  konular: { get: getKonular, add: addKonu, update: updateKonu, del: deleteKonu, imp: null },
 };
 const TABS = [
   { id: "yazilar", label: "Yazılar" },
   { id: "felsefe", label: "Felsefe" },
   { id: "biyografiler", label: "Biyografiler" },
+  { id: "konular", label: SEKME_ADI },
 ];
 const DISPLAY = {
   yazilar: { title: (a) => a.title, sub: (a) => `${a.date} · ${a.tag} · ${a.id}` },
   felsefe: { title: (a) => a.title, sub: (a) => a.id },
   biyografiler: { title: (a) => a.isim, sub: (a) => `${a.tarih} · ${a.etiket} · ${a.id}` },
+  konular: { title: (a) => a.title || "(başlıksız)", sub: (a) => a.id },
 };
+// Hangi alan "zorunlu isim/başlık" sayılacak
+const NAME_FIELD = { yazilar: "title", felsefe: "title", biyografiler: "isim", konular: "content" };
+// Açılır bölüm (akordiyon) düzenleyicisi olan türler
+const HAS_BOLUMLER = ["biyografiler"];
 
 export default function Admin() {
   const [session, setSession] = useState(null);
@@ -39,7 +47,7 @@ export default function Admin() {
   const [authErr, setAuthErr] = useState("");
 
   const [tab, setTab] = useState("yazilar");
-  const [lists, setLists] = useState({ yazilar: [], felsefe: [], biyografiler: [] });
+  const [lists, setLists] = useState({ yazilar: [], felsefe: [], biyografiler: [], konular: [] });
   const [msg, setMsg] = useState("");
   const [editing, setEditing] = useState(null);
 
@@ -73,20 +81,26 @@ export default function Admin() {
     setMsg("");
     if (tab === "yazilar") setEditing({ type: "yazilar", mode: "new", id: "", tag: "", date: "", title: "", desc: "", body: "" });
     else if (tab === "felsefe") setEditing({ type: "felsefe", mode: "new", id: "", title: "", content: "" });
-    else setEditing({ type: "biyografiler", mode: "new", id: "", isim: "", tarih: "", etiket: "", ozet: "", bolumler: [] });
+    else if (tab === "biyografiler") setEditing({ type: "biyografiler", mode: "new", id: "", isim: "", tarih: "", etiket: "", ozet: "", bolumler: [] });
+    else setEditing({ type: "konular", mode: "new", id: "", title: "", content: "" });
   }
   function startEdit(a) {
     setMsg("");
     if (tab === "yazilar") setEditing({ type: "yazilar", mode: "edit", id: a.id, tag: a.tag, date: a.date, title: a.title, desc: a.desc, body: (a.body || []).join("\n\n") });
     else if (tab === "felsefe") setEditing({ type: "felsefe", mode: "edit", id: a.id, title: a.title, content: a.content });
-    else setEditing({ type: "biyografiler", mode: "edit", id: a.id, isim: a.isim, tarih: a.tarih, etiket: a.etiket, ozet: a.ozet, bolumler: (a.bolumler || []).map((b) => ({ ...b })) });
+    else if (tab === "biyografiler") setEditing({ type: "biyografiler", mode: "edit", id: a.id, isim: a.isim, tarih: a.tarih, etiket: a.etiket, ozet: a.ozet, bolumler: (a.bolumler || []).map((b) => ({ ...b })) });
+    else setEditing({ type: "konular", mode: "edit", id: a.id, title: a.title, content: a.content });
   }
 
   async function save() {
     const e = editing;
+    const nameField = NAME_FIELD[e.type];
     const idOk = e.id && e.id.trim();
-    const nameOk = e.type === "biyografiler" ? (e.isim && e.isim.trim()) : (e.title && e.title.trim());
-    if (!idOk || !nameOk) { setMsg("id ve " + (e.type === "biyografiler" ? "isim" : "başlık") + " zorunlu."); return; }
+    const nameOk = e[nameField] && e[nameField].trim();
+    if (!idOk || !nameOk) {
+      setMsg("id ve " + (nameField === "content" ? "içerik" : nameField === "isim" ? "isim" : "başlık") + " zorunlu.");
+      return;
+    }
     try {
       if (e.mode === "new") { await API[e.type].add(e); setMsg("Eklendi."); }
       else { await API[e.type].update(e.id, e); setMsg("Güncellendi."); }
@@ -100,6 +114,7 @@ export default function Admin() {
     catch (err) { setMsg("Silinemedi: " + err.message); }
   }
   async function doImport() {
+    if (!API[tab].imp) return;
     try { const n = await API[tab].imp(); setMsg(n + " kayıt içe aktarıldı (var olanlara dokunulmadı)."); await reload(tab); }
     catch (err) { setMsg("İçe aktarılamadı: " + err.message); }
   }
@@ -138,7 +153,7 @@ export default function Admin() {
         <div style={box}>
           <h1 style={{ fontSize: 20, marginBottom: 20 }}>{e.mode === "new" ? "Yeni Kayıt" : "Düzenle"} — {TABS.find((t) => t.id === e.type).label}</h1>
 
-          <label style={label}>id (kısa etiket, boşluksuz — ör: ideoloji, bakunin)</label>
+          <label style={label}>id (kısa etiket, boşluksuz — ör: aforizma-1, devlet)</label>
           <input style={{ ...input, opacity: e.mode === "edit" ? 0.5 : 1 }} value={e.id} disabled={e.mode === "edit"} onChange={(ev) => set("id", ev.target.value)} />
 
           {e.type === "yazilar" && (<>
@@ -154,26 +169,27 @@ export default function Admin() {
             <textarea style={{ ...input, minHeight: 340, lineHeight: 1.6, resize: "vertical" }} value={e.body} onChange={(ev) => set("body", ev.target.value)} />
           </>)}
 
-          {e.type === "felsefe" && (<>
-            <label style={label}>Başlık</label>
+          {(e.type === "felsefe" || e.type === "konular") && (<>
+            <label style={label}>Başlık{e.type === "konular" ? " (isteğe bağlı — boş bırakabilirsin)" : ""}</label>
             <input style={input} value={e.title} onChange={(ev) => set("title", ev.target.value)} />
             <label style={label}>İçerik — paragrafları boş satırla ayır</label>
             <textarea style={{ ...input, minHeight: 340, lineHeight: 1.6, resize: "vertical" }} value={e.content} onChange={(ev) => set("content", ev.target.value)} />
           </>)}
 
-          {e.type === "biyografiler" && (<>
-            <label style={label}>İsim</label>
-            <input style={input} value={e.isim} onChange={(ev) => set("isim", ev.target.value)} />
-            <label style={label}>Tarih (ör: 1814-1876)</label>
+          {HAS_BOLUMLER.includes(e.type) && (<>
+            <label style={label}>{e.type === "biyografiler" ? "İsim" : "Başlık"}</label>
+            <input style={input} value={e.type === "biyografiler" ? e.isim : e.baslik}
+              onChange={(ev) => set(e.type === "biyografiler" ? "isim" : "baslik", ev.target.value)} />
+            <label style={label}>Tarih (solda görünen küçük yazı — boş bırakılabilir)</label>
             <input style={input} value={e.tarih} onChange={(ev) => set("tarih", ev.target.value)} />
-            <label style={label}>Etiket</label>
+            <label style={label}>Etiket (sağda görünen küçük yazı)</label>
             <input style={input} value={e.etiket} onChange={(ev) => set("etiket", ev.target.value)} />
-            <label style={label}>Özet</label>
+            <label style={label}>Özet (listede ve detay başında görünür)</label>
             <textarea style={{ ...input, minHeight: 90, lineHeight: 1.6, resize: "vertical" }} value={e.ozet} onChange={(ev) => set("ozet", ev.target.value)} />
 
             <div style={{ marginTop: 10, marginBottom: 10, borderTop: "1px solid #222", paddingTop: 16 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                <span style={{ ...label, marginBottom: 0 }}>Bölümler (açılır başlıklar)</span>
+                <span style={{ ...label, marginBottom: 0 }}>Bölümler (tıklayınca açılan başlıklar)</span>
                 <button style={{ ...btnGhost, padding: "6px 12px" }} onClick={addBolum}>+ Bölüm ekle</button>
               </div>
               {e.bolumler.length === 0 && <div style={{ color: "#666", fontSize: 13, marginBottom: 12 }}>Henüz bölüm yok.</div>}
@@ -215,7 +231,7 @@ export default function Admin() {
         </div>
         <p style={{ marginBottom: 20 }}><button style={backLink} onClick={toSite}>← Siteyi görüntüle</button></p>
 
-        <div style={{ display: "flex", gap: 8, marginBottom: 22, borderBottom: "1px solid #222" }}>
+        <div style={{ display: "flex", gap: 8, marginBottom: 22, borderBottom: "1px solid #222", flexWrap: "wrap" }}>
           {TABS.map((t) => (
             <button key={t.id} onClick={() => { setTab(t.id); setMsg(""); }}
               style={{ padding: "10px 16px", background: "none", border: "none", borderBottom: tab === t.id ? "2px solid " + RED : "2px solid transparent", color: tab === t.id ? "#fff" : "#888", cursor: "pointer", fontSize: 15, fontFamily: "inherit" }}>
@@ -226,12 +242,12 @@ export default function Admin() {
 
         <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
           <button style={btn} onClick={startNew}>+ Yeni</button>
-          <button style={btnGhost} onClick={doImport}>Mevcut içeriği içe aktar</button>
+          {API[tab].imp && <button style={btnGhost} onClick={doImport}>Mevcut içeriği içe aktar</button>}
         </div>
         {msg && <div style={{ color: "#9c9", fontSize: 13, marginBottom: 16 }}>{msg}</div>}
 
         <div>
-          {list.length === 0 && <div style={{ color: "#666", fontSize: 14 }}>Henüz kayıt yok. "Mevcut içeriği içe aktar" ile başlayabilirsin.</div>}
+          {list.length === 0 && <div style={{ color: "#666", fontSize: 14 }}>Henüz kayıt yok. "+ Yeni" ile ekleyebilirsin.</div>}
           {list.map((a) => (
             <div key={a.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 0", borderBottom: "1px solid #1e1e1e", gap: 12 }}>
               <div>

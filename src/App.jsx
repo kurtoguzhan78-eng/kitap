@@ -2,10 +2,13 @@ import { useState, useEffect } from "react";
 import { MAKALELER } from "./data/makaleler";
 import { BIO_DATA } from "./data/bioData";
 import { FELSEFE } from "./data/felsefe";
+import { KONULAR } from "./data/konular";
 import { getArticles } from "./lib/articles";
 import { getFelsefe } from "./lib/felsefe";
 import { getBios } from "./lib/bios";
+import { getKonular } from "./lib/konular";
 import { S } from "./styles";
+import { SEKME_ADI } from "./constants";
 
 import Header from "./components/Header";
 import Ticker from "./components/Ticker";
@@ -16,6 +19,7 @@ import Home from "./pages/Home";
 import Yazilar from "./pages/Yazilar";
 import Felsefe from "./pages/Felsefe";
 import Anarsizm from "./pages/Anarsizm";
+import Konular from "./pages/Konular";
 import Hakkinda from "./pages/Hakkinda";
 import Article from "./pages/Article";
 import Admin from "./pages/Admin";
@@ -39,10 +43,13 @@ export default function App() {
   const [articles, setArticles] = useState(MAKALELER);
   const [felsefe, setFelsefe] = useState(FELSEFE);
   const [bios, setBios] = useState(BIO_DATA);
+  const [konular, setKonular] = useState(KONULAR);
   useEffect(() => {
     getArticles().then((l) => { if (l && l.length) setArticles(l); }).catch(() => {});
     getFelsefe().then((l) => { if (l && l.length) setFelsefe(l); }).catch(() => {});
     getBios().then((l) => { if (l && l.length) setBios(l); }).catch(() => {});
+    // Yeni bölüm: tamamen panelden yönetilir, bu yüzden boş liste de geçerlidir
+    getKonular().then((l) => setKonular(l || [])).catch(() => {});
   }, []);
 
   if (isAdmin) return <Admin />;
@@ -57,6 +64,7 @@ export default function App() {
     { id: "yazilar", label: "YAZILAR" },
     { id: "felsefe", label: "FELSEFE" },
     { id: "anarsizm", label: "ANARŞİZM" },
+    { id: "konular", label: SEKME_ADI },
     { id: "hakkinda", label: "HAKKINDA" },
   ];
 
@@ -86,6 +94,8 @@ export default function App() {
       {page === "anarsizm" && <Anarsizm goBio={goBio} bios={bios} />}
 
       {page === "bio" && bio && <BioDetail bio={bio} onBack={() => go("anarsizm")} />}
+
+      {page === "konular" && <Konular konular={konular} />}
 
       {page === "hakkinda" && <Hakkinda />}
 

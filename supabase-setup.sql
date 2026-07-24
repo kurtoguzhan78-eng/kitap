@@ -72,3 +72,57 @@ drop policy if exists "bios_auth_update" on bios;
 create policy "bios_auth_update" on bios for update to authenticated using (true);
 drop policy if exists "bios_auth_delete" on bios;
 create policy "bios_auth_delete" on bios for delete to authenticated using (true);
+
+-- ============================================================
+-- 4) AFORİZMALAR (konular)
+--    Felsefe bölümüyle aynı yapıda: başlık + içerik.
+--    Site menüsündeki adı src/constants.js içindeki SEKME_ADI ile belirlenir.
+-- ============================================================
+create table if not exists konular (
+  id          text primary key,
+  baslik      text,
+  content     text,
+  sort_order  bigint default 0,
+  created_at  timestamptz default now()
+);
+
+-- Bu tabloyu daha önce eski (bölümlü) sürümle oluşturduysan eksik sütunu ekler.
+-- Zaten varsa hiçbir şey yapmaz.
+alter table konular add column if not exists baslik  text;
+alter table konular add column if not exists content text;
+
+-- Eski sürümde "bölümler" olarak girdiğin içerik varsa, onu yeni içerik
+-- alanına taşır. Yeni alanı zaten dolu olan kayıtlara DOKUNMAZ.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_name = 'konular' and column_name = 'bolumler'
+  ) then
+    update konular
+    set content = (
+      select string_agg(
+               case
+                 when coalesce(trim(b->>'baslik'), '') = ''
+                   then coalesce(b->>'icerik', '')
+                 else (b->>'baslik') || E'\n\n' || coalesce(b->>'icerik', '')
+               end,
+               E'\n\n'
+             )
+      from jsonb_array_elements(bolumler) b
+    )
+    where coalesce(content, '') = ''
+      and jsonb_array_length(coalesce(bolumler, '[]'::jsonb)) > 0;
+  end if;
+end $$;
+
+alter table konular enable row level security;
+
+drop policy if exists "konular_public_read" on konular;
+create policy "konular_public_read" on konular for select using (true);
+drop policy if exists "konular_auth_insert" on konular;
+create policy "konular_auth_insert" on konular for insert to authenticated with check (true);
+drop policy if exists "konular_auth_update" on konular;
+create policy "konular_auth_update" on konular for update to authenticated using (true);
+drop policy if exists "konular_auth_delete" on konular;
+create policy "konular_auth_delete" on konular for delete to authenticated using (true);
